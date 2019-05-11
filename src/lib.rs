@@ -1,10 +1,9 @@
 use std::error;
 
-/// Where information is distilled from data.
+/// One step closer to the peak.
 ///
 /// `Optimizer` is generic over a type `M` implementing the `Model` trait: `M` is used to
-/// constrain what type of inputs and targets are acceptable, as well as what signature the
-/// loss function should have.
+/// constrain what type of inputs and targets are acceptable.
 ///
 /// `train` takes an instance of `M` as one of its inputs, `model`: it doesn't matter if `model`
 /// has been through several rounds of training before, or if it just came out of a `Blueprint`
@@ -19,7 +18,7 @@ where
 {
     type Error: error::Error;
 
-    fn train<L>(
+    fn train(
         &self,
         inputs: &M::Input,
         targets: &M::Output,
