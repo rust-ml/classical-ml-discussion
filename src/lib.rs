@@ -13,10 +13,6 @@ use std::error;
 /// This means that there is no difference between one-shot training and incremental training.
 /// Furthermore, the optimizer doesn't have to "own" the model or know anything about its hyperparameters,
 /// because it never has to initialize it.
-///
-/// The output of the loss function is currently unconstrained: should it be an associated
-/// type of the `Optimizer` trait itself? Should we add it as a generic parameter of the
-/// `train` method, with a set of reasonable trait bounds?
 pub trait Optimizer<M>
 where
     M: Model,
@@ -28,11 +24,7 @@ where
         inputs: &M::Input,
         targets: &M::Output,
         model: M,
-        loss: L,
     ) -> Result<M, Self::Error>
-    // Returning f64 is arbitrary, but I didn't want to flesh out a Loss trait yet
-    where
-        L: FnMut(&M::Output, &M::Output) -> f64;
 }
 
 /// Where `Model`s are forged.
