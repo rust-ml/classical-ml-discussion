@@ -1,6 +1,15 @@
 use std::error;
 
-pub trait Trainer<M>
+/// Where information is distilled from data.
+///
+/// `Optimizer` is generic over a type `M` implementing the `Model` trait: `M` is used to
+/// constrain what type of inputs and targets are acceptable, as well as what signature the
+/// loss function should have.
+///
+/// The output of the loss function is currently unconstrained: should it be an associated
+/// type of the `Optimizer` trait itself? Should we add it as a generic parameter of the
+/// `train` method, with a set of reasonable trait bounds?
+pub trait Optimizer<M>
 where
     M: Model,
 {
