@@ -3,11 +3,10 @@ use std::error;
 pub trait Trainer<M>
     where M: Model
 {
-    type Input;
-    type Target;
     type Error: error::Error;
 
-    fn train(self, inputs: &Self::Input) -> Result<M, Self::Error>;
+    fn train<L>(&self, inputs: &M::Input, targets: &M::Output, loss: L) -> Result<M, Self::Error>
+    where L: FnMut(&M::Output, &M::Output) -> f64;
 }
 
 /// The basic `Model` trait.
