@@ -24,7 +24,7 @@ where
         inputs: &M::Input,
         targets: &M::Output,
         model: M,
-    ) -> Result<M, Self::Error>
+    ) -> Result<M, Self::Error>;
 }
 
 /// Where `Model`s are forged.
