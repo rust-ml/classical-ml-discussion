@@ -23,7 +23,13 @@ where
 {
     type Error: error::Error;
 
-    fn train<L>(&self, inputs: &M::Input, targets: &M::Output, model: M, loss: L) -> Result<M, Self::Error>
+    fn train<L>(
+        &self,
+        inputs: &M::Input,
+        targets: &M::Output,
+        model: M,
+        loss: L,
+    ) -> Result<M, Self::Error>
     // Returning f64 is arbitrary, but I didn't want to flesh out a Loss trait yet
     where
         L: FnMut(&M::Output, &M::Output) -> f64;
