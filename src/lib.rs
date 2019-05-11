@@ -1,12 +1,15 @@
 use std::error;
 
 pub trait Trainer<M>
-    where M: Model
+where
+    M: Model,
 {
     type Error: error::Error;
 
     fn train<L>(&self, inputs: &M::Input, targets: &M::Output, loss: L) -> Result<M, Self::Error>
-    where L: FnMut(&M::Output, &M::Output) -> f64;
+    // Returning f64 is arbitrary, but I didn't want to flesh out a Loss trait yet
+    where
+        L: FnMut(&M::Output, &M::Output) -> f64;
 }
 
 /// The basic `Model` trait.
