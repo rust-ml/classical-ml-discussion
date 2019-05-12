@@ -67,6 +67,20 @@ where
     fn initialize(&self, inputs: &M::Input, targets: &M::Output) -> Result<M, Self::Error>;
 }
 
+/// Any `Model` can be used as `Blueprint`, as long as it's clonable:
+/// it returns a clone of itself when `initialize` is called, ignoring the data.
+impl<M> Blueprint<M> for M
+where
+    M: Model + Clone,
+{
+    type Error = M::Error;
+
+    fn initialize(&self, _inputs: &M::Input, _targets: &M::Output) -> Result<M, Self::Error>
+    {
+        Ok(self.clone())
+    }
+}
+
 /// Where you need to go meta (hyperparameters!).
 ///
 /// `BlueprintGenerator`s can be used to explore different combination of hyperparameters
