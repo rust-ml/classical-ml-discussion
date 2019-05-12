@@ -46,6 +46,28 @@ where
     fn initialize(&self, inputs: &M::Input, targets: &M::Output) -> Result<M, Self::Error>;
 }
 
+
+/// Where you need to go meta (hyperparameters!).
+///
+/// `BlueprintGenerator`s can be used to explore different combination of hyperparameters
+/// when you are working with a certain `Model` type.
+///
+/// `BlueprintGenerator::generate` takes as input a closure that returns a `Blueprint` instance
+/// and an iterator that yields a set of possible inputs for this closure. It returns,
+/// if successful, an `IntoIterator` type yielding instances of blueprints.
+pub trait BlueprintGenerator<B, M>
+where
+    B: Blueprint<M>,
+    M: Model
+{
+    type Error: error::Error;
+
+    fn generate<F, P, I>(&self, parametrization: F, params: &Iterator<Item=P>) -> Result<I, Self::Error>
+    where
+        F: FnMut(P) -> B,
+        I: IntoIterator<Item=B>;
+}
+
 /// The basic `Model` trait.
 ///
 /// It is training-agnostic: a model takes an input and returns an output.
