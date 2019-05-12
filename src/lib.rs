@@ -1,4 +1,5 @@
 use std::error;
+use std::iter;
 
 /// One step closer to the peak.
 ///
@@ -46,6 +47,22 @@ where
     fn initialize(&self, inputs: &M::Input, targets: &M::Output) -> Result<M, Self::Error>;
 }
 
+/// Any `Blueprint` can be used as `BlueprintGenerator`, as long as it's clonable:
+/// it returns an iterator with a single element, a clone of itself.
+impl<B, M> BlueprintGenerator<B, M> for B
+where
+    B: Blueprint<M> + Clone,
+    M: Model,
+{
+    type Error = B::Error;
+    type Output = iter::Once<B>;
+
+    fn generate(&self) -> Result<Self::Output, Self::Error>
+    {
+        Ok(iter::once(self.clone()))
+    }
+}
+
 
 /// Where you need to go meta (hyperparameters!).
 ///
@@ -60,10 +77,9 @@ where
     M: Model
 {
     type Error: error::Error;
+    type Output: IntoIterator<Item=B>;
 
-    fn generate<I>(&self) -> Result<I, Self::Error>
-    where
-        I: IntoIterator<Item=B>;
+    fn generate(&self) -> Result<Self::Output, Self::Error>;
 }
 
 /// The basic `Model` trait.
