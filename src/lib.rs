@@ -52,9 +52,8 @@ where
 /// `BlueprintGenerator`s can be used to explore different combination of hyperparameters
 /// when you are working with a certain `Model` type.
 ///
-/// `BlueprintGenerator::generate` takes as input a closure that returns a `Blueprint` instance
-/// and an iterator that yields a set of possible inputs for this closure. It returns,
-/// if successful, an `IntoIterator` type yielding instances of blueprints.
+/// `BlueprintGenerator::generate` returns, if successful, an `IntoIterator` type
+/// yielding instances of blueprints.
 pub trait BlueprintGenerator<B, M>
 where
     B: Blueprint<M>,
@@ -62,9 +61,8 @@ where
 {
     type Error: error::Error;
 
-    fn generate<F, P, I>(&self, parametrization: F, params: &Iterator<Item=P>) -> Result<I, Self::Error>
+    fn generate<I>(&self) -> Result<I, Self::Error>
     where
-        F: FnMut(P) -> B,
         I: IntoIterator<Item=B>;
 }
 
