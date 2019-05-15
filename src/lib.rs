@@ -13,6 +13,15 @@ use std::iter;
 ///
 /// In the same way, it has no notion of loss or "correct" predictions.
 /// Those concepts are embedded elsewhere.
+///
+/// It's generic over input and output types:
+/// - you can transform a fully in-memory dataset;
+/// - you can transform a stream of data;
+/// - you can return a class;
+/// - you can return a probability distribution.
+///
+/// The mechanism for selecting the desired output, when not self-evident from the downstream
+/// usage, should be the same of the `::collect()` method.
 pub trait Transformer<I, O> {
     type Error: error::Error;
 
@@ -28,6 +37,12 @@ pub trait Transformer<I, O> {
 /// semantics and a new transformer is returned.
 ///
 /// It's a transition in the transformer state machine: from `Blueprint` to `Transformer`.
+///
+/// It's generic over input and output types:
+/// - you can fit on a fully in-memory dataset;
+/// - you can fit on a stream of data;
+/// - you can use integer-encoded class membership as a target;
+/// - you can use a one-hot-encoded class membership as a target.
 pub trait Fit<B, I, O>
 where
     B: Blueprint<I, O>,
@@ -51,6 +66,12 @@ where
 /// semantics and a new transformer is returned.
 ///
 /// It's a transition in the transformer state machine: from `Transformer` to `Transformer`.
+///
+/// It's generic over input and output types:
+/// - you can fit on a fully in-memory dataset;
+/// - you can fit on a stream of data;
+/// - you can use integer-encoded class membership as a target;
+/// - you can use a one-hot-encoded class membership as a target.
 pub trait IncrementalFit<T, I, O>
 where
     T: Transformer<I, O>
