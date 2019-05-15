@@ -44,6 +44,15 @@ where
     ) -> Result<B::Transformer, Self::Error>;
 }
 
+/// We are not done with that `Transformer` yet.
+///
+/// `IncrementalFit` is generic over a type `T` implementing the `Transformer` trait: `T` is used to
+/// constrain what type of inputs and targets are acceptable.
+///
+/// `incremental_fit` takes an instance of `T` as one of its inputs, `transformer`: it's consumed with move
+/// semantics and a new transformer is returned.
+///
+/// It's a transition in the transformer state machine: from `Transformer` to `Transformer`.
 pub trait IncrementalFit<T>
 where
     T: Transformer
@@ -67,10 +76,10 @@ where
 /// Every `Blueprint` is associated to a single `Transformer` type (is it wise to do so?).
 ///
 /// For the same transformer type `T`, nothing prevents a user from providing more than one `Blueprint`:
-/// multiple initialization strategies can sometimes be used to be build the same model type.
+/// multiple initialization strategies can sometimes be used to be build the same transformer type.
 ///
 /// Each of these strategies can take different (hyper)parameters, even though they return an
-/// instance of the same model type in the end.
+/// instance of the same transformer type in the end.
 pub trait Blueprint {
     type Transformer: Transformer;
 }
@@ -78,7 +87,7 @@ pub trait Blueprint {
 /// Where you need to go meta (hyperparameters!).
 ///
 /// `BlueprintGenerator`s can be used to explore different combination of hyperparameters
-/// when you are working with a certain `Model` type.
+/// when you are working with a certain `Transformer` type.
 ///
 /// `BlueprintGenerator::generate` returns, if successful, an `IntoIterator` type
 /// yielding instances of blueprints.
