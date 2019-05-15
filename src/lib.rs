@@ -13,12 +13,10 @@ use std::iter;
 ///
 /// In the same way, it has no notion of loss or "correct" predictions.
 /// Those concepts are embedded elsewhere.
-pub trait Transformer {
-    type Input;
-    type Output;
+pub trait Transformer<I, O> {
     type Error: error::Error;
 
-    fn transform(&self, inputs: &Self::Input) -> Result<Self::Output, Self::Error>;
+    fn transform(&self, inputs: &I) -> Result<O, Self::Error>;
 }
 
 /// One step closer to the peak.
@@ -30,16 +28,16 @@ pub trait Transformer {
 /// semantics and a new transformer is returned.
 ///
 /// It's a transition in the transformer state machine: from `Blueprint` to `Transformer`.
-pub trait Fit<B>
+pub trait Fit<B, I, O>
 where
-    B: Blueprint,
+    B: Blueprint<I, O>,
 {
     type Error: error::Error;
 
     fn fit(
         &self,
-        inputs: &B::Transformer::Input,
-        targets: &B::Transformer::Output,
+        inputs: &I,
+        targets: &O,
         blueprint: B,
     ) -> Result<B::Transformer, Self::Error>;
 }
@@ -53,16 +51,16 @@ where
 /// semantics and a new transformer is returned.
 ///
 /// It's a transition in the transformer state machine: from `Transformer` to `Transformer`.
-pub trait IncrementalFit<T>
+pub trait IncrementalFit<T, I, O>
 where
-    T: Transformer
+    T: Transformer<I, O>
 {
     type Error: error::Error;
 
     fn incremental_fit(
         &self,
-        inputs: &T::Input,
-        targets: &T::Output,
+        inputs: &I,
+        targets: &O,
         transformer: T,
     ) -> Result<T, Self::Error>;
 
@@ -80,8 +78,8 @@ where
 ///
 /// Each of these strategies can take different (hyper)parameters, even though they return an
 /// instance of the same transformer type in the end.
-pub trait Blueprint {
-    type Transformer: Transformer;
+pub trait Blueprint<I, O> {
+    type Transformer: Transformer<I, O>;
 }
 
 /// Where you need to go meta (hyperparameters!).
@@ -91,9 +89,9 @@ pub trait Blueprint {
 ///
 /// `BlueprintGenerator::generate` returns, if successful, an `IntoIterator` type
 /// yielding instances of blueprints.
-pub trait BlueprintGenerator<B>
+pub trait BlueprintGenerator<B, I, O>
 where
-    B: Blueprint,
+    B: Blueprint<I, O>,
 {
     type Error: error::Error;
     type Output: IntoIterator<Item=B>;
@@ -103,11 +101,12 @@ where
 
 /// Any `Blueprint` can be used as `BlueprintGenerator`, as long as it's clonable:
 /// it returns an iterator with a single element, a clone of itself.
-impl<B> BlueprintGenerator<B> for B
+impl<B, I, O> BlueprintGenerator<B, I, O> for B
     where
-        B: Blueprint + Clone,
+        B: Blueprint<I, O> + Clone,
 {
-    type Error = B::Error;
+    // Random error, didn't have time to get a proper one
+    type Error = std::io::Error;
     type Output = iter::Once<B>;
 
     fn generate(&self) -> Result<Self::Output, Self::Error>
