@@ -1,84 +1,78 @@
 use std::error;
 use std::iter;
 
-/// The basic `Model` trait.
+/// The basic `Transformer` trait.
 ///
-/// It is training-agnostic: a model takes an input and returns an output.
+/// It is training-agnostic: a transformer takes an input and returns an output.
 ///
 /// There might be multiple ways to discover the best settings for every
 /// particular algorithm (e.g. training a logistic regressor using
 /// a pseudo-inverse matrix vs using gradient descent).
-/// It doesn't matter: the end result, the model, is a set of parameters.
+/// It doesn't matter: the end result, the transformer, is a set of parameters.
 /// The way those parameter originated is an orthogonal concept.
 ///
 /// In the same way, it has no notion of loss or "correct" predictions.
 /// Those concepts are embedded elsewhere.
-pub trait Model {
+pub trait Transformer {
     type Input;
     type Output;
     type Error: error::Error;
 
-    fn predict(&self, inputs: &Self::Input) -> Result<Self::Output, Self::Error>;
+    fn transform(&self, inputs: &Self::Input) -> Result<Self::Output, Self::Error>;
 }
 
 /// One step closer to the peak.
 ///
-/// `Optimizer` is generic over a type `M` implementing the `Model` trait: `M` is used to
+/// `Fit` is generic over a type `B` implementing the `Blueprint` trait: `B::Transformer` is used to
 /// constrain what type of inputs and targets are acceptable.
 ///
-/// `train` takes an instance of `M` as one of its inputs, `model`: it doesn't matter if `model`
-/// has been through several rounds of training before, or if it just came out of a `Blueprint`
-/// using `initialize` - it's consumed by `train` and a new model is returned.
+/// `fit` takes an instance of `B` as one of its inputs, `blueprint`: it's consumed with move
+/// semantics and a new transformer is returned.
 ///
-/// This means that there is no difference between one-shot training and incremental training.
-/// Furthermore, the optimizer doesn't have to "own" the model or know anything about its hyperparameters,
-/// because it never has to initialize it.
-pub trait Optimizer<M>
+/// It's a transition in the transformer state machine: from `Blueprint` to `Transformer`.
+pub trait Fit<B>
 where
-    M: Model,
+    B: Blueprint,
 {
     type Error: error::Error;
 
-    fn train(
+    fn fit(
         &self,
-        inputs: &M::Input,
-        targets: &M::Output,
-        model: M,
-    ) -> Result<M, Self::Error>;
+        inputs: &B::Transformer::Input,
+        targets: &B::Transformer::Output,
+        blueprint: B,
+    ) -> Result<B::Transformer, Self::Error>;
 }
 
-/// Where `Model`s are forged.
+pub trait IncrementalFit<T>
+where
+    T: Transformer
+{
+    type Error: error::Error;
+
+    fn incremental_fit(
+        &self,
+        inputs: &T::Input,
+        targets: &T::Output,
+        transformer: T,
+    ) -> Result<T, Self::Error>;
+
+}
+
+/// Where `Transformer`s are forged.
 ///
-/// `Blueprint`s are used to specify how to build and initialize an instance of the model type `M`.
+/// `Blueprint` is a marker trait: it identifies what types can be used as starting points for
+/// building `Transformer`s. It's the initial stage of the transformer state machine.
 ///
-/// For the same model type `M`, nothing prevents a user from providing more than one `Blueprint`:
-/// multiple initialization strategies can somethings be used to be build the same model type.
+/// Every `Blueprint` is associated to a single `Transformer` type (is it wise to do so?).
+///
+/// For the same transformer type `T`, nothing prevents a user from providing more than one `Blueprint`:
+/// multiple initialization strategies can sometimes be used to be build the same model type.
 ///
 /// Each of these strategies can take different (hyper)parameters, even though they return an
 /// instance of the same model type in the end.
-///
-/// The initialization procedure could be data-dependent, hence the signature of `initialize`.
-pub trait Blueprint<M>
-where
-    M: Model,
-{
-    type Error: error::Error;
-
-    fn initialize(&self, inputs: &M::Input, targets: &M::Output) -> Result<M, Self::Error>;
-}
-
-/// Any `Model` can be used as `Blueprint`, as long as it's clonable:
-/// it returns a clone of itself when `initialize` is called, ignoring the data.
-impl<M> Blueprint<M> for M
-where
-    M: Model + Clone,
-{
-    type Error = M::Error;
-
-    fn initialize(&self, _inputs: &M::Input, _targets: &M::Output) -> Result<M, Self::Error>
-    {
-        Ok(self.clone())
-    }
+pub trait Blueprint {
+    type Transformer: Transformer;
 }
 
 /// Where you need to go meta (hyperparameters!).
@@ -88,10 +82,9 @@ where
 ///
 /// `BlueprintGenerator::generate` returns, if successful, an `IntoIterator` type
 /// yielding instances of blueprints.
-pub trait BlueprintGenerator<B, M>
+pub trait BlueprintGenerator<B>
 where
-    B: Blueprint<M>,
-    M: Model
+    B: Blueprint,
 {
     type Error: error::Error;
     type Output: IntoIterator<Item=B>;
@@ -101,10 +94,9 @@ where
 
 /// Any `Blueprint` can be used as `BlueprintGenerator`, as long as it's clonable:
 /// it returns an iterator with a single element, a clone of itself.
-impl<B, M> BlueprintGenerator<B, M> for B
+impl<B> BlueprintGenerator<B> for B
     where
-        B: Blueprint<M> + Clone,
-        M: Model,
+        B: Blueprint + Clone,
 {
     type Error = B::Error;
     type Output = iter::Once<B>;
