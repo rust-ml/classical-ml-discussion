@@ -60,22 +60,24 @@ where
             // Nothing to be done
             return Ok(transformer);
         }
+
+        let ddof = transformer.ddof;
+
         // Compute relevant quantities for the new batch
         let batch_n_samples = inputs.len();
         let batch_mean = inputs.mean_axis(Axis(0)).into_scalar();
-        let batch_std = inputs.std_axis(Axis(0), transformer.ddof).into_scalar();
+        let batch_std = inputs.std_axis(Axis(0), ddof).into_scalar();
 
         // Update
         let mean_delta = batch_mean - transformer.mean;
         let new_n_samples = self.n_samples + (batch_n_samples as u64);
         let new_mean =
             transformer.mean + mean_delta * (batch_n_samples as f64) / (new_n_samples as f64);
-        let new_std = ((transformer.standard_deviation.powi(2)
-            * (self.n_samples as f64 - transformer.ddof)
-            + batch_std.powi(2) * (batch_n_samples as f64 - transformer.ddof)
+        let new_std = ((transformer.standard_deviation.powi(2) * (self.n_samples as f64 - ddof)
+            + batch_std.powi(2) * (batch_n_samples as f64 - ddof)
             + mean_delta.powi(2) * (self.n_samples as f64) * (batch_n_samples as f64)
                 / (new_n_samples as f64))
-            / (new_n_samples as f64 - transformer.ddof))
+            / (new_n_samples as f64 - ddof))
             .sqrt();
 
         // Update n_samples
@@ -83,7 +85,7 @@ where
 
         // Return tuned scaler
         Ok(StandardScaler {
-            ddof: transformer.ddof,
+            ddof,
             mean: new_mean,
             standard_deviation: new_std,
         })
