@@ -5,3 +5,7 @@ authors = ["LukeMathWalker <lucapalmieri1993@hotmail.com>"]
 edition = "2018"
 
 [dependencies]
+
+[dev-dependencies]
+ndarray = "0.12.1"
+derive_more = "0.13.0"
