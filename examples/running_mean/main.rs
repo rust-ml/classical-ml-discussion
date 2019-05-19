@@ -26,9 +26,15 @@ where
 {
     let old_batch_mean = x.mean_axis(Axis(0)).into_scalar();
     let new_batch_mean = scaler.transform(&x)?.mean_axis(Axis(0)).into_scalar();
+    let old_batch_std = x.std_axis(Axis(0), 1.).into_scalar();
+    let new_batch_std = scaler.transform(&x)?.std_axis(Axis(0), 1.).into_scalar();
     println!(
         "The mean.\nBefore scaling: {:?}\nAfter scaling: {:?}\n",
         old_batch_mean, new_batch_mean
+    );
+    println!(
+        "The std deviation.\nBefore scaling: {:?}\nAfter scaling: {:?}\n",
+        old_batch_std, new_batch_std
     );
     Ok(())
 }

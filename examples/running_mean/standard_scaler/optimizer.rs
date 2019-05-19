@@ -70,10 +70,13 @@ where
         let new_n_samples = self.n_samples + (batch_n_samples as u64);
         let new_mean =
             transformer.mean + mean_delta * (batch_n_samples as f64) / (new_n_samples as f64);
-        let new_std = transformer.standard_deviation
-            + batch_std
+        let new_std = ((transformer.standard_deviation.powi(2)
+            * (self.n_samples as f64 - transformer.ddof)
+            + batch_std.powi(2) * (batch_n_samples as f64 - transformer.ddof)
             + mean_delta.powi(2) * (self.n_samples as f64) * (batch_n_samples as f64)
-                / (new_n_samples as f64);
+                / (new_n_samples as f64))
+            / (new_n_samples as f64 - transformer.ddof))
+            .sqrt();
 
         // Update n_samples
         self.n_samples = new_n_samples;
