@@ -17,9 +17,8 @@ impl Default for Config {
 }
 
 impl<S> Blueprint<Input<S>, Output> for Config
-    where
-        S: Data<Elem = f64>,
+where
+    S: Data<Elem = f64>,
 {
     type Transformer = StandardScaler;
 }
-

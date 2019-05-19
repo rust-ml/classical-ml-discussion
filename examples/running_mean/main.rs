@@ -5,11 +5,11 @@ extern crate rand;
 #[macro_use]
 extern crate derive_more;
 
+use crate::standard_scaler::{Config, OnlineOptimizer, ScalingError, StandardScaler};
 use linfa::{Fit, IncrementalFit, Transformer};
-use ndarray::{Array1, ArrayBase, Axis, Data, Ix1, stack};
+use ndarray::{stack, Array1, ArrayBase, Axis, Data, Ix1};
 use ndarray_rand::RandomExt;
 use rand::distributions::Uniform;
-use crate::standard_scaler::{StandardScaler, ScalingError, Config, OnlineOptimizer};
 
 mod standard_scaler;
 
@@ -22,13 +22,10 @@ fn generate_batch(n_samples: usize) -> (Array1<f64>, Array1<f64>) {
 
 fn check<S>(scaler: &StandardScaler, x: &ArrayBase<S, Ix1>) -> Result<(), ScalingError>
 where
-    S: Data<Elem=f64>
+    S: Data<Elem = f64>,
 {
     let old_batch_mean = x.mean_axis(Axis(0)).into_scalar();
-    let new_batch_mean = scaler
-        .transform(&x)?
-        .mean_axis(Axis(0))
-        .into_scalar();
+    let new_batch_mean = scaler.transform(&x)?.mean_axis(Axis(0)).into_scalar();
     println!(
         "The mean.\nBefore scaling: {:?}\nAfter scaling: {:?}\n",
         old_batch_mean, new_batch_mean

@@ -1,6 +1,6 @@
-use crate::standard_scaler::{Config, StandardScaler, Input, Output, ScalingError};
-use linfa::{IncrementalFit, Fit};
-use ndarray::{Data, Axis};
+use crate::standard_scaler::{Config, Input, Output, ScalingError, StandardScaler};
+use linfa::{Fit, IncrementalFit};
+use ndarray::{Axis, Data};
 
 /// It keeps track of the number of samples seen so far, to allow for
 /// incremental computation of mean and standard deviation.
@@ -16,8 +16,8 @@ impl Default for OnlineOptimizer {
 }
 
 impl<S> Fit<Config, Input<S>, Output> for OnlineOptimizer
-    where
-        S: Data<Elem = f64>,
+where
+    S: Data<Elem = f64>,
 {
     type Error = ScalingError;
 
@@ -45,8 +45,8 @@ impl<S> Fit<Config, Input<S>, Output> for OnlineOptimizer
 }
 
 impl<S> IncrementalFit<StandardScaler, Input<S>, Output> for OnlineOptimizer
-    where
-        S: Data<Elem = f64>,
+where
+    S: Data<Elem = f64>,
 {
     type Error = ScalingError;
 
@@ -73,7 +73,7 @@ impl<S> IncrementalFit<StandardScaler, Input<S>, Output> for OnlineOptimizer
         let new_std = transformer.standard_deviation
             + batch_std
             + mean_delta.powi(2) * (self.n_samples as f64) * (batch_n_samples as f64)
-            / (new_n_samples as f64);
+                / (new_n_samples as f64);
 
         // Update n_samples
         self.n_samples = new_n_samples;
@@ -86,4 +86,3 @@ impl<S> IncrementalFit<StandardScaler, Input<S>, Output> for OnlineOptimizer
         })
     }
 }
-
