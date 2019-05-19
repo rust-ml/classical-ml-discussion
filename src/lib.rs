@@ -36,6 +36,8 @@ pub trait Transformer<I, O> {
 /// `fit` takes an instance of `B` as one of its inputs, `blueprint`: it's consumed with move
 /// semantics and a new transformer is returned.
 ///
+/// Different types implementing `Fit` can work on the same `Blueprint` type!
+///
 /// It's a transition in the transformer state machine: from `Blueprint` to `Transformer`.
 ///
 /// It's generic over input and output types:
@@ -84,7 +86,6 @@ where
         targets: &O,
         transformer: T,
     ) -> Result<T, Self::Error>;
-
 }
 
 /// Where `Transformer`s are forged.
