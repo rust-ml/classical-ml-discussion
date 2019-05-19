@@ -51,7 +51,8 @@ where
 {
     type Error: error::Error;
 
-    fn fit(&self, inputs: &I, targets: &O, blueprint: B) -> Result<B::Transformer, Self::Error>;
+    fn fit(&mut self, inputs: &I, targets: &O, blueprint: B)
+        -> Result<B::Transformer, Self::Error>;
 }
 
 /// We are not done with that `Transformer` yet.
@@ -75,7 +76,12 @@ where
 {
     type Error: error::Error;
 
-    fn incremental_fit(&self, inputs: &I, targets: &O, transformer: T) -> Result<T, Self::Error>;
+    fn incremental_fit(
+        &mut self,
+        inputs: &I,
+        targets: &O,
+        transformer: T,
+    ) -> Result<T, Self::Error>;
 }
 
 /// Where `Transformer`s are forged.
