@@ -8,4 +8,6 @@ edition = "2018"
 
 [dev-dependencies]
 ndarray = "0.12.1"
+ndarray-rand = "0.9.0"
+rand = "*"
 derive_more = "0.13.0"
