@@ -8,7 +8,7 @@ use ndarray::{Array1, ArrayBase, Axis, Data, Ix1};
 use std::error::Error;
 
 /// Short-hand notations
-type Input<S: Data<Elem = f64>> = ArrayBase<S, Ix1>;
+type Input<S> = ArrayBase<S, Ix1>;
 type Output = Array1<f64>;
 
 /// Fast-and-dirty error struct
@@ -73,10 +73,37 @@ where
     fn incremental_fit(
         &mut self,
         inputs: &Input<S>,
-        targets: &Output,
+        _targets: &Output,
         transformer: StandardScaler,
     ) -> Result<StandardScaler, Self::Error> {
-        unimplemented!()
+        if inputs.len() == 0 {
+            // Nothing to be done
+            return Ok(transformer);
+        }
+        // Compute relevant quantities for the new batch
+        let batch_n_samples = inputs.len();
+        let batch_mean = inputs.mean_axis(Axis(0)).into_scalar();
+        let batch_std = inputs.std_axis(Axis(0), transformer.ddof).into_scalar();
+
+        // Update
+        let mean_delta = batch_mean - transformer.mean;
+        let new_n_samples = self.n_samples + (batch_n_samples as u64);
+        let new_mean =
+            transformer.mean + mean_delta * (batch_n_samples as f64) / (new_n_samples as f64);
+        let new_std = transformer.standard_deviation
+            + batch_std
+            + mean_delta.powi(2) * (self.n_samples as f64) * (batch_n_samples as f64)
+                / (new_n_samples as f64);
+
+        // Update n_samples
+        self.n_samples = new_n_samples;
+
+        // Return tuned scaler
+        Ok(StandardScaler {
+            ddof: transformer.ddof,
+            mean: new_mean,
+            standard_deviation: new_std,
+        })
     }
 }
 
