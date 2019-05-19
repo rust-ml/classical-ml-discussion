@@ -51,12 +51,7 @@ where
 {
     type Error: error::Error;
 
-    fn fit(
-        &self,
-        inputs: &I,
-        targets: &O,
-        blueprint: B,
-    ) -> Result<B::Transformer, Self::Error>;
+    fn fit(&self, inputs: &I, targets: &O, blueprint: B) -> Result<B::Transformer, Self::Error>;
 }
 
 /// We are not done with that `Transformer` yet.
@@ -76,16 +71,11 @@ where
 /// - you can use a one-hot-encoded class membership as a target.
 pub trait IncrementalFit<T, I, O>
 where
-    T: Transformer<I, O>
+    T: Transformer<I, O>,
 {
     type Error: error::Error;
 
-    fn incremental_fit(
-        &self,
-        inputs: &I,
-        targets: &O,
-        transformer: T,
-    ) -> Result<T, Self::Error>;
+    fn incremental_fit(&self, inputs: &I, targets: &O, transformer: T) -> Result<T, Self::Error>;
 }
 
 /// Where `Transformer`s are forged.
@@ -116,7 +106,7 @@ where
     B: Blueprint<I, O>,
 {
     type Error: error::Error;
-    type Output: IntoIterator<Item=B>;
+    type Output: IntoIterator<Item = B>;
 
     fn generate(&self) -> Result<Self::Output, Self::Error>;
 }
@@ -124,15 +114,14 @@ where
 /// Any `Blueprint` can be used as `BlueprintGenerator`, as long as it's clonable:
 /// it returns an iterator with a single element, a clone of itself.
 impl<B, I, O> BlueprintGenerator<B, I, O> for B
-    where
-        B: Blueprint<I, O> + Clone,
+where
+    B: Blueprint<I, O> + Clone,
 {
     // Random error, didn't have time to get a proper one
     type Error = std::io::Error;
     type Output = iter::Once<B>;
 
-    fn generate(&self) -> Result<Self::Output, Self::Error>
-    {
+    fn generate(&self) -> Result<Self::Output, Self::Error> {
         Ok(iter::once(self.clone()))
     }
 }
